@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"   // seed.ts and lib/prisma.ts must import from here
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Category {
+  DRINKS
+  SNACKS
+  MEALS
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+}
+
+model MenuItem {
+  id         String      @id @default(cuid())
+  name       String
+  price      Decimal     @db.Money
+  category   Category
+  tag        String?
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  ticketNo  Int         @unique @default(autoincrement())
+  orderType OrderType   @default(DINE_IN)
+  subtotal  Decimal     @db.Money
+  tax       Decimal     @db.Money
+  total     Decimal     @db.Money
+  status    String      @default("open")
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId String
+  qty        Int
+  unitPrice  Decimal  @db.Money
+}
